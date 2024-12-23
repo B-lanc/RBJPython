@@ -8,10 +8,6 @@ cos = math.cos
 get_alpha = lambda omega, Q: sin(omega) / 2 / Q
 
 
-def formCoefficients(b0, b1, b2, a0, a1, a2):
-    return (b0 / a0, b1 / a0, b2 / a0), (a1 / a0, a2 / a0)
-
-
 def LPF(data, freq, sr=48000, Q=1, axis=0):
     omega = get_Omega(freq, sr)
     cosomega = cos(omega)
@@ -23,6 +19,5 @@ def LPF(data, freq, sr=48000, Q=1, axis=0):
     a1 = -2 * cosomega
     a2 = 1 - alpha
 
-    b, a = formCoefficients(b0, b1, b2, a0, a1, a2)
-
+    b, a = (b0, b1, b2), (a0, a1, a2)
     return lfilter(b, a, data, axis)
