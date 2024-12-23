@@ -21,3 +21,18 @@ def LPF(data, freq, sr=48000, Q=1, axis=0):
 
     b, a = (b0, b1, b2), (a0, a1, a2)
     return lfilter(b, a, data, axis)
+
+
+def HPF(data, freq, sr=48000, Q=1, axis=0):
+    omega = get_Omega(freq, sr)
+    cosomega = cos(omega)
+    alpha = get_alpha(omega, Q)
+    b0 = (1 + cosomega) / 2
+    b1 = -1 - cosomega
+    b2 = (1 + cosomega) / 2
+    a0 = 1 + alpha
+    a1 = -2 * cosomega
+    a2 = 1 - alpha
+
+    b, a = (b0, b1, b2), (a0, a1, a2)
+    return lfilter(b, a, data, axis)
