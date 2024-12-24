@@ -120,3 +120,39 @@ def Bell(data, gain, freq, sr=48000, Q=1, axis=0):
 
     b, a = (b0, b1, b2), (a0, a1, a2)
     return lfilter(b, a, data, axis)
+
+
+def LS(data, gain, freq, sr=48000, Q=1, axis=0):
+    A = get_A(gain)
+    omega = get_Omega(freq, sr)
+    cosomega = cos(omega)
+    alpha = get_alpha(omega, Q)
+    twosqrtaalpha = 2 * math.sqrt(A) * alpha
+
+    b0 = A * ((A + 1) - (A - 1) * cosomega + twosqrtaalpha)
+    b1 = 2 * A * ((A - 1) - (A + 1) * cosomega)
+    b2 = A * ((A + 1) - (A - 1) * cosomega - twosqrtaalpha)
+    a0 = (A + 1) + (A - 1) * cosomega + twosqrtaalpha
+    a1 = -2 * ((A - 1) + (A + 1) * cosomega)
+    a2 = (A + 1) + (A - 1) * cosomega - twosqrtaalpha
+
+    b, a = (b0, b1, b2), (a0, a1, a2)
+    return lfilter(b, a, data, axis)
+
+
+def HS(data, gain, freq, sr=48000, Q=1, axis=0):
+    A = get_A(gain)
+    omega = get_Omega(freq, sr)
+    cosomega = cos(omega)
+    alpha = get_alpha(omega, Q)
+    twosqrtaalpha = 2 * math.sqrt(A) * alpha
+
+    b0 = A * ((A + 1) + (A - 1) * cosomega + twosqrtaalpha)
+    b1 = -2 * A * ((A - 1) + (A + 1) * cosomega)
+    b2 = A * ((A + 1) + (A - 1) * cosomega - twosqrtaalpha)
+    a0 = (A + 1) - (A - 1) * cosomega + twosqrtaalpha
+    a1 = 2 * ((A - 1) - (A + 1) * cosomega)
+    a2 = (A + 1) - (A - 1) * cosomega - twosqrtaalpha
+
+    b, a = (b0, b1, b2), (a0, a1, a2)
+    return lfilter(b, a, data, axis)
