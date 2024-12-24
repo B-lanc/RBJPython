@@ -15,7 +15,7 @@ def LPF(data, freq, sr=48000, Q=1, axis=0):
 
     b0 = (1 - cosomega) / 2
     b1 = 1 - cosomega
-    b2 = b0
+    b2 = (1 - cosomega) / 2
     a0 = 1 + alpha
     a1 = -2 * cosomega
     a2 = 1 - alpha
@@ -48,7 +48,7 @@ def BPFSkirt(data, freq, sr=48000, Q=1, axis=0):
 
     b0 = sinomega / 2
     b1 = 0
-    b2 = -b0
+    b2 = -sinomega / 2
     a0 = 1 + alpha
     a1 = -2 * cosomega
     a2 = 1 - alpha
@@ -82,7 +82,7 @@ def Notch(data, freq, sr=48000, Q=1, axis=0):
     b1 = -2 * cosomega
     b2 = 1
     a0 = 1 + alpha
-    a1 = b1
+    a1 = -2 * cosomega
     a2 = 1 - alpha
 
     b, a = (b0, b1, b2), (a0, a1, a2)
@@ -98,7 +98,7 @@ def APF(data, freq, sr=48000, Q=1, axis=0):
     b1 = -2 * cosomega
     b2 = 1 + alpha
     a0 = 1 + alpha
-    a1 = b1
+    a1 = -2 * cosomega
     a2 = 1 - alpha
 
     b, a = (b0, b1, b2), (a0, a1, a2)
