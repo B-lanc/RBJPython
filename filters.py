@@ -1,17 +1,28 @@
 from scipy.signal import lfilter
-import math
+from math import pi, sin, cos, sqrt, sinh, log
 
-get_A = lambda dbGain: 10 ** (dbGain / 40)
-get_Omega = lambda f, sr: 2 * math.pi * f / sr
-sin = math.sin
-cos = math.cos
-get_alpha = lambda omega, Q: sin(omega) / 2 / Q
+log10 = lambda n: log(n, 10)
 
 
-def LPF(data, freq, sr=48000, Q=1, axis=0):
-    omega = get_Omega(freq, sr)
+def get_intermediate(freq, sr, Q, gain=None, BW=None, S=None):
+    omega = 2 * pi * freq / sr
+    sinomega = sin(omega)
     cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
+
+    A = get_A(gain) if gain else None
+
+    if Q is None:
+        if BW is not None:
+            alpha = sinomega * sinh(log10(2) / 2 * BW * omega / sinomega)
+        else:
+            alpha = sinomega / 2 * sqrt((A + 1 / A) * (1 / S - 1) + 2)
+    else:
+        alpha = sinomega / 2 / Q
+    return omega, sinomega, cosomega, alpha, A
+
+
+def LPF(data, freq, sr=48000, Q=1, BW=None, axis=0):
+    omega, sinomega, cosomega, alpha, _ = get_intermediate(freq, sr, Q=Q, BW=BW)
 
     b0 = (1 - cosomega) / 2
     b1 = 1 - cosomega
@@ -24,10 +35,8 @@ def LPF(data, freq, sr=48000, Q=1, axis=0):
     return lfilter(b, a, data, axis)
 
 
-def HPF(data, freq, sr=48000, Q=1, axis=0):
-    omega = get_Omega(freq, sr)
-    cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
+def HPF(data, freq, sr=48000, Q=1, BW=None, axis=0):
+    omega, sinomega, cosomega, alpha, _ = get_intermediate(freq, sr, Q=Q, BW=BW)
 
     b0 = (1 + cosomega) / 2
     b1 = -1 - cosomega
@@ -40,11 +49,8 @@ def HPF(data, freq, sr=48000, Q=1, axis=0):
     return lfilter(b, a, data, axis)
 
 
-def BPFSkirt(data, freq, sr=48000, Q=1, axis=0):
-    omega = get_Omega(freq, sr)
-    sinomega = sin(omega)
-    cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
+def BPFSkirt(data, freq, sr=48000, Q=1, BW=None, axis=0):
+    omega, sinomega, cosomega, alpha, _ = get_intermediate(freq, sr, Q=Q, BW=BW)
 
     b0 = sinomega / 2
     b1 = 0
@@ -57,10 +63,8 @@ def BPFSkirt(data, freq, sr=48000, Q=1, axis=0):
     return lfilter(b, a, data, axis)
 
 
-def BPF(data, freq, sr=48000, Q=1, axis=0):
-    omega = get_Omega(freq, sr)
-    cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
+def BPF(data, freq, sr=48000, Q=1, BW=None, axis=0):
+    omega, sinomega, cosomega, alpha, _ = get_intermediate(freq, sr, Q=Q, BW=BW)
 
     b0 = alpha
     b1 = 0
@@ -73,10 +77,8 @@ def BPF(data, freq, sr=48000, Q=1, axis=0):
     return lfilter(b, a, data, axis)
 
 
-def Notch(data, freq, sr=48000, Q=1, axis=0):
-    omega = get_Omega(freq, sr)
-    cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
+def Notch(data, freq, sr=48000, Q=1, BW=None, axis=0):
+    omega, sinomega, cosomega, alpha, _ = get_intermediate(freq, sr, Q=Q, BW=BW)
 
     b0 = 1
     b1 = -2 * cosomega
@@ -89,10 +91,8 @@ def Notch(data, freq, sr=48000, Q=1, axis=0):
     return lfilter(b, a, data, axis)
 
 
-def APF(data, freq, sr=48000, Q=1, axis=0):
-    omega = get_Omega(freq, sr)
-    cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
+def APF(data, freq, sr=48000, Q=1, BW=None, axis=0):
+    omega, sinomega, cosomega, alpha, _ = get_intermediate(freq, sr, Q=Q, BW=BW)
 
     b0 = 1 - alpha
     b1 = -2 * cosomega
@@ -105,11 +105,10 @@ def APF(data, freq, sr=48000, Q=1, axis=0):
     return lfilter(b, a, data, axis)
 
 
-def Bell(data, gain, freq, sr=48000, Q=1, axis=0):
-    A = get_A(gain)
-    omega = get_Omega(freq, sr)
-    cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
+def Bell(data, gain, freq, sr=48000, Q=1, BW=None, axis=0):
+    omega, sinomega, cosomega, alpha, A = get_intermediate(
+        freq, sr, Q=Q, gain=gain, BW=BW
+    )
 
     b0 = 1 + alpha * A
     b1 = -2 * cosomega
@@ -122,12 +121,11 @@ def Bell(data, gain, freq, sr=48000, Q=1, axis=0):
     return lfilter(b, a, data, axis)
 
 
-def LS(data, gain, freq, sr=48000, Q=1, axis=0):
-    A = get_A(gain)
-    omega = get_Omega(freq, sr)
-    cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
-    twosqrtaalpha = 2 * math.sqrt(A) * alpha
+def LS(data, gain, freq, sr=48000, Q=1, BW=None, S=None, axis=0):
+    omega, sinomega, cosomega, alpha, A = get_intermediate(
+        freq, sr, Q=Q, gain=gain, BW=BW, S=S
+    )
+    twosqrtaalpha = 2 * sqrt(A) * alpha
 
     b0 = A * ((A + 1) - (A - 1) * cosomega + twosqrtaalpha)
     b1 = 2 * A * ((A - 1) - (A + 1) * cosomega)
@@ -140,12 +138,11 @@ def LS(data, gain, freq, sr=48000, Q=1, axis=0):
     return lfilter(b, a, data, axis)
 
 
-def HS(data, gain, freq, sr=48000, Q=1, axis=0):
-    A = get_A(gain)
-    omega = get_Omega(freq, sr)
-    cosomega = cos(omega)
-    alpha = get_alpha(omega, Q)
-    twosqrtaalpha = 2 * math.sqrt(A) * alpha
+def HS(data, gain, freq, sr=48000, Q=1, BW=None, S=None, axis=0):
+    omega, sinomega, cosomega, alpha, A = get_intermediate(
+        freq, sr, Q=Q, gain=gain, BW=BW, S=S
+    )
+    twosqrtaalpha = 2 * sqrt(A) * alpha
 
     b0 = A * ((A + 1) + (A - 1) * cosomega + twosqrtaalpha)
     b1 = -2 * A * ((A - 1) + (A + 1) * cosomega)

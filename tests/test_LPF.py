@@ -13,7 +13,7 @@ WRITEPATH = f"./audio/testLPFf{FREQ}q{Q}.wav"
 
 def test_LPF():
     data, sr = read_audio(PATH)
-    data = LPF(data, FREQ, sr, Q, 0)
+    data = LPF(data, FREQ, sr, Q, axis=0)
     write_audio(WRITEPATH, data, sr)
 
 

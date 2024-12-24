@@ -13,7 +13,7 @@ WRITEPATH = f"./audio/testBPFSkirtf{FREQ}q{Q}.wav"
 
 def test_HPF():
     data, sr = read_audio(PATH)
-    data = BPFSkirt(data, FREQ, sr, Q, 0)
+    data = BPFSkirt(data, FREQ, sr, Q, axis=0)
     write_audio(WRITEPATH, data, sr)
 
 

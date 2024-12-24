@@ -13,7 +13,7 @@ WRITEPATH = f"./audio/testHPFf{FREQ}q{Q}.wav"
 
 def test_HPF():
     data, sr = read_audio(PATH)
-    data = HPF(data, FREQ, sr, Q, 0)
+    data = HPF(data, FREQ, sr, Q, axis=0)
     write_audio(WRITEPATH, data, sr)
 
 

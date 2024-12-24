@@ -14,7 +14,7 @@ WRITEPATH = f"./audio/testBellf{FREQ}q{Q}.wav"
 
 def test_HPF():
     data, sr = read_audio(PATH)
-    data = Bell(data, GAIN, FREQ, sr, Q, 0)
+    data = Bell(data, GAIN, FREQ, sr, Q, axis=0)
     write_audio(WRITEPATH, data, sr)
 
 
