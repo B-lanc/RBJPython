@@ -103,3 +103,20 @@ def APF(data, freq, sr=48000, Q=1, axis=0):
 
     b, a = (b0, b1, b2), (a0, a1, a2)
     return lfilter(b, a, data, axis)
+
+
+def Bell(data, gain, freq, sr=48000, Q=1, axis=0):
+    A = get_A(gain)
+    omega = get_Omega(freq, sr)
+    cosomega = cos(omega)
+    alpha = get_alpha(omega, Q)
+
+    b0 = 1 + alpha * A
+    b1 = -2 * cosomega
+    b2 = 1 - alpha * A
+    a0 = 1 + alpha / A
+    a1 = -2 * cosomega
+    a2 = 1 - alpha / A
+
+    b, a = (b0, b1, b2), (a0, a1, a2)
+    return lfilter(b, a, data, axis)
